@@ -63,27 +63,34 @@ export const useStore = () => {
             try {
                 const symbolsToLoad = loadWatchlistSymbols();
                 const promises = symbolsToLoad.map(async (symbol) => {
-                    const quote = await fetchQuote(symbol, apiKey);
-                    return {
-                        symbol,
-                        name: symbol, // Finnhub quote doesn't provide name, simplified for now
-                        currentPrice: quote.c,
-                        changeValue: quote.d,
-                        changePercent: quote.dp,
-                        history: [], // History loaded separately when active
-                    } as StockSummary;
+                    try {
+                        const quote = await fetchQuote(symbol, apiKey);
+                        return {
+                            symbol,
+                            name: symbol, // Finnhub quote doesn't provide name, simplified for now
+                            currentPrice: quote.c,
+                            changeValue: quote.d,
+                            changePercent: quote.dp,
+                            history: [], // History loaded separately when active
+                        } as StockSummary;
+                    } catch (err) {
+                        console.error(`Failed to load initial quote for ${symbol}`, err);
+                        return null;
+                    }
                 });
 
-                const results = await Promise.all(promises);
+                const resultsRaw = await Promise.all(promises);
+                const results = resultsRaw.filter((s): s is StockSummary => s !== null);
                 if (mounted) {
                     // Update active symbol to first available on load
                     if (results.length > 0) setActiveSymbol(results[0].symbol);
                     setWatchlist(results);
                     setIsInitializing(false);
                 }
-            } catch (err: any) {
+            } catch (err) {
                 if (mounted) {
-                    setError(err.message || 'Failed to load initial watchlist');
+                    const message = err instanceof Error ? err.message : 'Unknown error';
+                    setError(message || 'Failed to load initial watchlist');
                     setIsInitializing(false);
                 }
             }
@@ -121,8 +128,9 @@ export const useStore = () => {
                 return updated;
             });
             setActiveSymbol(symbol);
-        } catch (err: any) {
-            setError(`Failed to add ${symbol}: ${err.message}`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            setError(`Failed to add ${symbol}: ${message}`);
         }
     }, [watchlist, apiKey]);
 
@@ -169,9 +177,10 @@ export const useStore = () => {
                 }
                 return stock;
             }));
-        } catch (err: any) {
+        } catch (err) {
             console.error('Fetch history failed', err);
-            setError(`Failed to load history for ${activeSymbol}: ${err.message}`);
+            const message = err instanceof Error ? err.message : String(err);
+            setError(`Failed to load history for ${activeSymbol}: ${message}`);
         } finally {
             setIsChartLoading(false);
         }
@@ -192,11 +201,12 @@ export const useStore = () => {
         };
 
         try {
-            const result = await generateAIAnalysis(activeSymbol, recentHistory, quote as any, aiApiKey, aiModel);
+            const result = await generateAIAnalysis(activeSymbol, recentHistory, quote, aiApiKey, aiModel);
             setAiAnalysisText(result);
-        } catch (err: any) {
+        } catch (err) {
             console.error('AI Analysis failed', err);
-            setAiAnalysisText(`Analysis Error: ${err.message}`);
+            const message = err instanceof Error ? err.message : String(err);
+            setAiAnalysisText(`Analysis Error: ${message}`);
         } finally {
             setIsAnalyzing(false);
         }

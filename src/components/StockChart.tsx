@@ -33,11 +33,12 @@ const StockChart: React.FC = () => {
             const days = RANGES.find(r => r.label === timeRange)?.days || 365;
             loadHistoryForActiveStock(days);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeStock?.symbol, timeRange, loadHistoryForActiveStock]);
 
     const filteredData = activeStock?.history || [];
 
-    const formatDate = (dateStr: any) => {
+    const formatDate = (dateStr: string) => {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
