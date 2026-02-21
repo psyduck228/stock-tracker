@@ -1,53 +1,153 @@
-import React, { useState } from 'react';
-import { Search, Plus, TrendingUp, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, TrendingUp, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import { useStoreContext } from '../context/StoreContext';
+import { searchStocks } from '../services/api';
+import type { FinnhubSearchResponse } from '../services/api';
 import './Sidebar.css';
 
 const Sidebar: React.FC = () => {
-    const { watchlist, activeSymbol, setActiveSymbol } = useStoreContext();
+    const {
+        watchlist,
+        activeSymbol,
+        setActiveSymbol,
+        addStockToWatchlist,
+        removeStockFromWatchlist,
+        isInitializing,
+        apiKey,
+        aiApiKey,
+        setAiApiKey,
+        aiModel,
+        setAiModel,
+        aiAnalysisText,
+        setAiAnalysisText,
+        isAnalyzing,
+        fetchAIAnalysis
+    } = useStoreContext();
     const [showAI, setShowAI] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<FinnhubSearchResponse['result']>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Clear old analysis when symbol changes
+    useEffect(() => {
+        setAiAnalysisText(null);
+    }, [activeSymbol, setAiAnalysisText]);
+
+    // Debounce search
+    useEffect(() => {
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+        if (searchQuery.trim().length < 2 || !apiKey) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        searchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const response = await searchStocks(searchQuery, apiKey);
+                // Filter out non-equity results to keep it cleaner
+                const equities = response.result.filter(r => r.type === 'Common Stock' || r.type === '');
+                setSearchResults(equities.slice(0, 5));
+            } catch (err) {
+                console.error('Search failed', err);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 500); // 500ms debounce
+
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, [searchQuery]);
+
+    const handleAddStock = async (symbol: string, name: string) => {
+        setSearchQuery('');
+        setSearchResults([]);
+        await addStockToWatchlist(symbol, name);
+    };
 
     return (
         <div className="sidebar">
             <div className="sidebar-header">
                 <TrendingUp className="logo-icon text-teal" size={24} />
-                <h2 className="logo-text">TrendTrack</h2>
+                <h2 className="logo-text">Stock Trend Tracker</h2>
             </div>
 
             <div className="search-bar">
                 <div className="search-input-wrapper">
                     <Search size={16} className="search-icon" />
-                    <input type="text" placeholder="Add stock by symbol or name" className="search-input" />
+                    <input
+                        type="text"
+                        placeholder="Add stock by symbol or name"
+                        className="search-input"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {isSearching && <Loader2 size={16} className="search-spinner" />}
                 </div>
-                <button className="add-btn">
-                    <Plus size={16} />
-                </button>
+
+                {searchResults.length > 0 && (
+                    <div className="search-results-dropdown glass-panel">
+                        {searchResults.map((result) => (
+                            <div
+                                key={result.symbol}
+                                className="search-result-item"
+                                onClick={() => handleAddStock(result.symbol, result.description)}
+                            >
+                                <div className="result-symbol">{result.symbol}</div>
+                                <div className="result-name">{result.description}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="watchlist">
-                {watchlist.map((stock) => {
-                    const isPositive = stock.changeValue >= 0;
-                    return (
-                        <div
-                            key={stock.symbol}
-                            className={`watchlist-item ${activeSymbol === stock.symbol ? 'active' : ''}`}
-                            onClick={() => setActiveSymbol(stock.symbol)}
-                        >
-                            <div className="stock-info">
-                                <span className="stock-symbol">{stock.symbol}</span>
-                                <span className="stock-price-muted">${stock.currentPrice.toFixed(2)}</span>
+                {isInitializing ? (
+                    <div className="loading-state">
+                        <Loader2 size={24} className="loading-spinner text-teal" />
+                        <span>Loading live quotes...</span>
+                    </div>
+                ) : (
+                    watchlist.map((stock) => {
+                        const isPositive = stock.changeValue >= 0;
+                        return (
+                            <div
+                                key={stock.symbol}
+                                className={`watchlist-item ${activeSymbol === stock.symbol ? 'active' : ''}`}
+                                onClick={() => setActiveSymbol(stock.symbol)}
+                            >
+                                <div className="stock-info">
+                                    <span className="stock-symbol">{stock.symbol}</span>
+                                    <span className="stock-price-muted">${stock.currentPrice.toFixed(2)}</span>
+                                </div>
+                                <div className="stock-stats">
+                                    {/* Using standard Finnhub percent logic where dp is the percentage */}
+                                    <span className={`stock-change-pct ${isPositive ? 'text-gain' : 'text-loss'}`}>
+                                        {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent || 0).toFixed(2)}%
+                                    </span>
+                                    <div className="stock-actions">
+                                        <span className={`stock-change-val ${isPositive ? 'text-gain' : 'text-loss'}`}>
+                                            {isPositive ? '+' : '-'}{Math.abs(stock.changeValue || 0).toFixed(2)}
+                                        </span>
+                                        <button
+                                            className="remove-stock-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeStockFromWatchlist(stock.symbol);
+                                            }}
+                                            title="Remove from Watchlist"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="stock-stats">
-                                <span className={`stock-change-pct ${isPositive ? 'text-gain' : 'text-loss'}`}>
-                                    {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent).toFixed(2)}%
-                                </span>
-                                <span className={`stock-change-val ${isPositive ? 'text-gain' : 'text-loss'}`}>
-                                    {isPositive ? '+' : '-'}{Math.abs(stock.changeValue).toFixed(2)}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
 
             <div className="sidebar-footer">
@@ -67,13 +167,70 @@ const Sidebar: React.FC = () => {
                         <button className="close-btn" onClick={() => setShowAI(false)}>&times;</button>
                     </div>
                     <div className="ai-panel-content">
-                        <p>
-                            Based on recent moving average crossovers and volume profile, {activeSymbol} shows signs of a
-                            short-term consolidation phase. Momentum indicators suggest cautious optimism.
-                        </p>
-                        <div className="ai-warning">
-                            <strong>WARNING:</strong> This is a mock AI analysis. Do not use this as actual financial advice or for investment decisions.
-                        </div>
+                        {!aiApiKey ? (
+                            <div className="ai-api-key-form">
+                                <p className="ai-api-description">
+                                    Enter your AI Provider API Key to unlock trend insights.
+                                </p>
+                                <p className="ai-api-helper">
+                                    Don't have a key? Get one from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google Gemini</a>.
+                                </p>
+                                <input
+                                    type="text"
+                                    placeholder="sk-proj-..."
+                                    className="ai-api-input"
+                                    id="aiApiKeyInput"
+                                />
+                                <button
+                                    className="ai-api-submit"
+                                    onClick={() => {
+                                        const input = document.getElementById('aiApiKeyInput') as HTMLInputElement;
+                                        if (input && input.value.trim()) {
+                                            setAiApiKey(input.value.trim());
+                                        }
+                                    }}
+                                >
+                                    Save Key
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="ai-analysis-container">
+                                <select
+                                    className="ai-model-select"
+                                    value={aiModel}
+                                    onChange={(e) => setAiModel(e.target.value)}
+                                    disabled={isAnalyzing}
+                                >
+                                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                    <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro Exp</option>
+                                </select>
+
+                                {!aiAnalysisText && !isAnalyzing ? (
+                                    <button className="ai-analyze-btn" onClick={fetchAIAnalysis}>
+                                        Analyze {activeSymbol}
+                                    </button>
+                                ) : isAnalyzing ? (
+                                    <div className="ai-analyzing-state">
+                                        <Loader2 size={24} className="loading-spinner text-teal" />
+                                        <span>Analyzing trend patterns...</span>
+                                    </div>
+                                ) : (
+                                    <div className="ai-analysis-result">
+                                        <p>{aiAnalysisText}</p>
+                                        <button className="ai-analyze-btn secondary" onClick={fetchAIAnalysis}>
+                                            Regenerate Analysis
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="ai-warning">
+                                    <strong>WARNING:</strong> This analysis is AI-generated. Do not use this as actual financial advice or for investment decisions.
+                                </div>
+                                <button className="ai-api-reset" onClick={() => setAiApiKey('')}>Reset API Key</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

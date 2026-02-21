@@ -1,27 +1,32 @@
-import { StoreProvider } from './context/StoreContext';
+import React from 'react';
+import { StoreProvider, useStoreContext } from './context/StoreContext';
 import Sidebar from './components/Sidebar';
 import DashboardHeader from './components/DashboardHeader';
 import StockChart from './components/StockChart';
+import ApiKeyModal from './components/ApiKeyModal';
 import './index.css';
 
-function AppContent() {
+const AppContent: React.FC = () => {
+  const { apiKey, setApiKey } = useStoreContext();
+
   return (
     <div className="layout-grid">
+      {!apiKey && <ApiKeyModal onSave={setApiKey} />}
       <Sidebar />
-      <div className="main-content">
+      <main className="main-content">
         <DashboardHeader />
         <StockChart />
-      </div>
+      </main>
     </div>
   );
-}
+};
 
-function App() {
+const App: React.FC = () => {
   return (
     <StoreProvider>
       <AppContent />
     </StoreProvider>
   );
-}
+};
 
 export default App;
