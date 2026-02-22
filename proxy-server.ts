@@ -16,6 +16,20 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         return res.status(400).json({ error: 'Missing required parameters' });
     }
 
+    // Input Validation
+    if (!/^[a-zA-Z0-9.^-]+$/.test(symbol)) {
+        return res.status(400).json({ error: 'Invalid symbol format' });
+    }
+
+    if (isNaN(Number(period1)) || isNaN(Number(period2))) {
+        return res.status(400).json({ error: 'Invalid period format' });
+    }
+
+    const allowedIntervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo'];
+    if (!allowedIntervals.includes(interval as string)) {
+        return res.status(400).json({ error: 'Invalid interval format' });
+    }
+
     try {
         const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${period1}&period2=${period2}&interval=${interval}`;
         const response = await fetch(yahooUrl);
@@ -28,7 +42,7 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         res.json(data);
     } catch (error) {
         console.error('Proxy Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
