@@ -23,13 +23,13 @@ export interface FinnhubSearchResponse {
 }
 
 export interface FinnhubCandleResponse {
-    c: number[]; // Close prices
-    h: number[]; // High prices
-    l: number[]; // Low prices
-    o: number[]; // Open prices
+    c: (number | null)[]; // Close prices
+    h: (number | null)[]; // High prices
+    l: (number | null)[]; // Low prices
+    o: (number | null)[]; // Open prices
     s: string; // Status
     t: number[]; // Timestamps
-    v: number[]; // Volume
+    v: (number | null)[]; // Volume
 }
 
 export const fetchQuote = async (symbol: string, token: string): Promise<FinnhubQuote> => {

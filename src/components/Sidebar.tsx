@@ -44,23 +44,28 @@ const Sidebar: React.FC = () => {
         }
 
         setIsSearching(true);
+        let active = true;
+
         searchTimeoutRef.current = setTimeout(async () => {
             try {
                 const response = await searchStocks(searchQuery, apiKey);
+                if (!active) return;
+
                 // Filter out non-equity results to keep it cleaner
                 const equities = response.result.filter(r => r.type === 'Common Stock' || r.type === '');
                 setSearchResults(equities.slice(0, 5));
             } catch (err) {
                 console.error('Search failed', err);
             } finally {
-                setIsSearching(false);
+                if (active) setIsSearching(false);
             }
         }, 500); // 500ms debounce
 
         return () => {
+            active = false;
             if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
         };
-    }, [searchQuery]);
+    }, [searchQuery, apiKey]);
 
     const handleAddStock = async (symbol: string, name: string) => {
         setSearchQuery('');
