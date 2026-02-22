@@ -43,6 +43,13 @@ export default defineConfig([
 ])
 ```
 
+## Recent Fixes
+
+- **API Resilience**: Fixed type mismatch in `FinnhubCandleResponse` to correctly handle `null` values from Yahoo Finance proxy, preventing potential runtime errors.
+- **Watchlist Stability**: Improved `loadInitialWatchlist` to gracefully handle individual symbol fetch failures, ensuring valid symbols are still loaded.
+- **Race Condition**: Added cleanup logic to search effect in `Sidebar.tsx` to prevent state updates on unmounted components.
+- **Linting**: Resolved ESLint errors related to `any` types and `useEffect` dependencies.
+
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js
