@@ -5,7 +5,9 @@ import fetch from 'node-fetch';
 const app = express();
 const PORT = 3001;
 
-app.use(cors());
+app.use(cors({
+    origin: /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/ // Restrict to local development only
+}));
 
 // Proxy endpoint for Yahoo Finance Historical Data
 app.get('/api/yahoo-finance/:symbol', async (req, res) => {
@@ -21,8 +23,13 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         return res.status(400).json({ error: 'Invalid symbol format' });
     }
 
-    if (isNaN(Number(period1)) || isNaN(Number(period2))) {
-        return res.status(400).json({ error: 'Invalid period format' });
+    // Strict numeric validation for timestamps
+    if (!/^\d+$/.test(String(period1)) || !/^\d+$/.test(String(period2))) {
+        return res.status(400).json({ error: 'Invalid period format. Expected positive integers.' });
+    }
+
+    if (Number(period1) >= Number(period2)) {
+        return res.status(400).json({ error: 'period1 must be less than period2' });
     }
 
     const allowedIntervals = ['1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo'];
