@@ -37,9 +37,15 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         return res.status(400).json({ error: 'Invalid interval format' });
     }
 
+    // Set security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     try {
         const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${period1}&period2=${period2}&interval=${interval}`;
-        const response = await fetch(yahooUrl);
+        const response = await fetch(yahooUrl, { signal: controller.signal });
 
         if (!response.ok) {
             return res.status(response.status).json({ error: 'Yahoo API Error' });
@@ -47,9 +53,15 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
 
         const data = await response.json();
         res.json(data);
-    } catch (error) {
+    } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+            console.error('Proxy Timeout:', error);
+            return res.status(504).json({ error: 'Gateway Timeout' });
+        }
         console.error('Proxy Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        clearTimeout(timeoutId);
     }
 });
 
