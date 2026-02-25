@@ -9,6 +9,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStoreContext = () => {
     const context = useContext(StoreContext);
     if (!context) {

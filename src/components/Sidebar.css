@@ -138,6 +138,47 @@
     background: var(--color-teal);
 }
 
+.watchlist-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.watchlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px 8px;
+}
+
+.watchlist-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sort-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sort-btn:hover {
+    color: var(--color-teal);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 .watchlist {
     flex: 1;
     overflow-y: auto;
@@ -164,6 +205,45 @@
 .watchlist-item.active {
     background: var(--color-charcoal-light);
     border-left: 3px solid var(--color-teal);
+}
+
+.watchlist-item.dragging {
+    opacity: 0.9;
+    background: var(--color-charcoal-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-left: 3px solid var(--color-border);
+    z-index: 10;
+}
+
+.stock-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.drag-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    padding: 4px;
+    margin-left: -8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.watchlist-item:hover .drag-handle {
+    opacity: 0.4;
+}
+
+.drag-handle:hover {
+    opacity: 1 !important;
+    color: var(--color-text-main);
 }
 
 .stock-info {

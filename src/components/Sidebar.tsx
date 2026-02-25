@@ -1,9 +1,86 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, TrendingUp, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import { Search, TrendingUp, AlertTriangle, Loader2, Trash2, ArrowDownAZ, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useStoreContext } from '../context/StoreContext';
 import { searchStocks } from '../services/api';
 import type { FinnhubSearchResponse } from '../services/api';
+import type { StockSummary } from '../types';
 import './Sidebar.css';
+
+interface SortableWatchlistItemProps {
+    stock: StockSummary;
+    activeSymbol: string;
+    setActiveSymbol: (symbol: string) => void;
+    removeStockFromWatchlist: (symbol: string) => void;
+}
+
+const SortableWatchlistItem: React.FC<SortableWatchlistItemProps> = ({ stock, activeSymbol, setActiveSymbol, removeStockFromWatchlist }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: stock.symbol });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 1 : 0,
+        opacity: isDragging ? 0.8 : 1,
+        position: 'relative' as const,
+    };
+
+    const isPositive = stock.changeValue >= 0;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`watchlist-item ${activeSymbol === stock.symbol ? 'active' : ''} ${isDragging ? 'dragging' : ''}`}
+            onClick={() => setActiveSymbol(stock.symbol)}
+        >
+            <div className="stock-left">
+                <div
+                    className="drag-handle"
+                    {...attributes}
+                    {...listeners}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <GripVertical size={14} className="drag-icon" />
+                </div>
+                <div className="stock-info">
+                    <span className="stock-symbol">{stock.symbol}</span>
+                    <span className="stock-price-muted">${stock.currentPrice.toFixed(2)}</span>
+                </div>
+            </div>
+            <div className="stock-stats">
+                <span className={`stock-change-pct ${isPositive ? 'text-gain' : 'text-loss'}`}>
+                    {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent || 0).toFixed(2)}%
+                </span>
+                <div className="stock-actions">
+                    <span className={`stock-change-val ${isPositive ? 'text-gain' : 'text-loss'}`}>
+                        {isPositive ? '+' : '-'}{Math.abs(stock.changeValue || 0).toFixed(2)}
+                    </span>
+                    <button
+                        className="remove-stock-btn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            removeStockFromWatchlist(stock.symbol);
+                        }}
+                        title="Remove from Watchlist"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const Sidebar: React.FC = () => {
     const {
@@ -12,6 +89,8 @@ const Sidebar: React.FC = () => {
         setActiveSymbol,
         addStockToWatchlist,
         removeStockFromWatchlist,
+        reorderWatchlist,
+        sortWatchlistByName,
         isInitializing,
         apiKey,
         aiApiKey,
@@ -28,6 +107,26 @@ const Sidebar: React.FC = () => {
     const [searchResults, setSearchResults] = useState<FinnhubSearchResponse['result']>([]);
     const [isSearching, setIsSearching] = useState(false);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            const oldIndex = watchlist.findIndex((s) => s.symbol === active.id);
+            const newIndex = watchlist.findIndex((s) => s.symbol === over.id);
+            reorderWatchlist(oldIndex, newIndex);
+        }
+    };
 
     // Clear old analysis when symbol changes
     useEffect(() => {
@@ -109,50 +208,42 @@ const Sidebar: React.FC = () => {
                 )}
             </div>
 
-            <div className="watchlist">
-                {isInitializing ? (
-                    <div className="loading-state">
-                        <Loader2 size={24} className="loading-spinner text-teal" />
-                        <span>Loading live quotes...</span>
-                    </div>
-                ) : (
-                    watchlist.map((stock) => {
-                        const isPositive = stock.changeValue >= 0;
-                        return (
-                            <div
-                                key={stock.symbol}
-                                className={`watchlist-item ${activeSymbol === stock.symbol ? 'active' : ''}`}
-                                onClick={() => setActiveSymbol(stock.symbol)}
+            <div className="watchlist-section">
+                <div className="watchlist-header">
+                    <h3>Watchlist</h3>
+                    <button className="sort-btn" onClick={sortWatchlistByName} title="Sort A-Z">
+                        <ArrowDownAZ size={16} />
+                    </button>
+                </div>
+                <div className="watchlist">
+                    {isInitializing ? (
+                        <div className="loading-state">
+                            <Loader2 size={24} className="loading-spinner text-teal" />
+                            <span>Loading live quotes...</span>
+                        </div>
+                    ) : (
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <SortableContext
+                                items={watchlist.map(s => s.symbol)}
+                                strategy={verticalListSortingStrategy}
                             >
-                                <div className="stock-info">
-                                    <span className="stock-symbol">{stock.symbol}</span>
-                                    <span className="stock-price-muted">${stock.currentPrice.toFixed(2)}</span>
-                                </div>
-                                <div className="stock-stats">
-                                    {/* Using standard Finnhub percent logic where dp is the percentage */}
-                                    <span className={`stock-change-pct ${isPositive ? 'text-gain' : 'text-loss'}`}>
-                                        {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent || 0).toFixed(2)}%
-                                    </span>
-                                    <div className="stock-actions">
-                                        <span className={`stock-change-val ${isPositive ? 'text-gain' : 'text-loss'}`}>
-                                            {isPositive ? '+' : '-'}{Math.abs(stock.changeValue || 0).toFixed(2)}
-                                        </span>
-                                        <button
-                                            className="remove-stock-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                removeStockFromWatchlist(stock.symbol);
-                                            }}
-                                            title="Remove from Watchlist"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
+                                {watchlist.map((stock) => (
+                                    <SortableWatchlistItem
+                                        key={stock.symbol}
+                                        stock={stock}
+                                        activeSymbol={activeSymbol}
+                                        setActiveSymbol={setActiveSymbol}
+                                        removeStockFromWatchlist={removeStockFromWatchlist}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </DndContext>
+                    )}
+                </div>
             </div>
 
             <div className="sidebar-footer">

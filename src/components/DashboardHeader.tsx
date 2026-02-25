@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Info } from 'lucide-react';
 import { useStoreContext } from '../context/StoreContext';
+import InstructionsModal from './InstructionsModal';
 import './DashboardHeader.css';
 
 const DashboardHeader: React.FC = () => {
     const { stats } = useStoreContext();
+    const [showInstructions, setShowInstructions] = useState(false);
 
     return (
         <div className="dashboard-header-container">
-            <h1 className="dashboard-title">Dashboard</h1>
+            <div className="dashboard-title-row">
+                <h1 className="dashboard-title">Dashboard</h1>
+                <button
+                    className="help-btn"
+                    onClick={() => setShowInstructions(true)}
+                    title="How to Use"
+                    aria-label="How to Use"
+                >
+                    <Info size={20} />
+                </button>
+            </div>
 
             <div className="stats-grid">
                 <div className="stat-card glass-panel">
@@ -53,6 +66,10 @@ const DashboardHeader: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {showInstructions && (
+                <InstructionsModal onClose={() => setShowInstructions(false)} />
+            )}
         </div>
     );
 };

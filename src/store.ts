@@ -151,6 +151,25 @@ export const useStore = () => {
         });
     }, [activeSymbol]);
 
+    const reorderWatchlist = useCallback((oldIndex: number, newIndex: number) => {
+        setWatchlist(prev => {
+            if (oldIndex < 0 || oldIndex >= prev.length || newIndex < 0 || newIndex >= prev.length) return prev;
+            const updated = [...prev];
+            const [moved] = updated.splice(oldIndex, 1);
+            updated.splice(newIndex, 0, moved);
+            localStorage.setItem('tracked_symbols', JSON.stringify(updated.map(s => s.symbol)));
+            return updated;
+        });
+    }, []);
+
+    const sortWatchlistByName = useCallback(() => {
+        setWatchlist(prev => {
+            const updated = [...prev].sort((a, b) => a.symbol.localeCompare(b.symbol));
+            localStorage.setItem('tracked_symbols', JSON.stringify(updated.map(s => s.symbol)));
+            return updated;
+        });
+    }, []);
+
     // Load History for the currently active stock
     const loadHistoryForActiveStock = useCallback(async (days: number) => {
         if (!activeSymbol || isInitializing) return;
@@ -258,6 +277,8 @@ export const useStore = () => {
         error,
         addStockToWatchlist,
         removeStockFromWatchlist,
+        reorderWatchlist,
+        sortWatchlistByName,
         loadHistoryForActiveStock,
         apiKey,
         setApiKey,

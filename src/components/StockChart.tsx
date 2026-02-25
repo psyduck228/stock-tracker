@@ -38,8 +38,8 @@ const StockChart: React.FC = () => {
 
     const filteredData = activeStock?.history || [];
 
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return '';
+    const formatDate = (dateStr: unknown) => {
+        if (!dateStr || typeof dateStr !== 'string') return '';
         const d = new Date(dateStr);
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };

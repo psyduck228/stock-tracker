@@ -1,0 +1,70 @@
+.instructions-modal {
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-title-group h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.instructions-body {
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1;
+}
+
+.instruction-section h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+    color: var(--color-teal);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-icon {
+    color: var(--color-white);
+}
+
+.instruction-section p {
+    margin: 0 0 12px 0;
+    color: var(--color-text-main);
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.instruction-section ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--color-text-main);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.instruction-section li {
+    margin-bottom: 6px;
+}
+
+.instruction-section li strong {
+    color: var(--color-white);
+}
+
+.instructions-ok-btn {
+    width: 100%;
+    margin-top: auto;
+}
