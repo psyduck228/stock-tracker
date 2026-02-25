@@ -63,8 +63,8 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         res.json(data);
     } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') {
-            console.error('Proxy Timeout:', error);
-            return res.status(504).json({ error: 'Gateway Timeout' });
+            console.error('Proxy Error: Request timeout');
+            return res.status(504).json({ error: 'Request timeout' });
         }
         console.error('Proxy Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
