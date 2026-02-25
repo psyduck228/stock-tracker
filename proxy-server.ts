@@ -48,6 +48,9 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
         return res.status(400).json({ error: 'Invalid interval format' });
     }
 
+    // Set security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
