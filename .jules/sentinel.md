@@ -7,3 +7,8 @@
 **Vulnerability:** External `fetch` calls without timeouts can hang indefinitely, causing resource exhaustion (DoS).
 **Learning:** `node-fetch` requires an explicit `AbortController` signal to handle timeouts; it does not have a built-in timeout option like some other libraries.
 **Prevention:** Always wrap external API calls with an `AbortController` and a `setTimeout` (e.g., 5s), ensuring the timeout is cleared in a `finally` block.
+
+## 2025-02-18 - In-Memory Rate Limiting
+**Vulnerability:** Unrestricted access to external API proxies allows abuse and potential IP bans.
+**Learning:** For simple single-instance development servers, an in-memory `Map<string, number[]>` is sufficient for rate limiting without external dependencies like Redis.
+**Prevention:** Implement middleware that tracks request timestamps per IP and rejects excessive requests (e.g., >20/min) with HTTP 429.
