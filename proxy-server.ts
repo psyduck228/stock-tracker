@@ -14,6 +14,34 @@ app.use((req, res, next) => {
     next();
 });
 
+// Rate limiting configuration
+const rateLimit = new Map<string, number[]>();
+const WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS = 20; // Limit each IP to 20 requests per minute
+
+// Rate limiting middleware
+app.use((req, res, next) => {
+    const ip = req.ip || 'unknown';
+    const now = Date.now();
+
+    if (!rateLimit.has(ip)) {
+        rateLimit.set(ip, []);
+    }
+
+    const timestamps = rateLimit.get(ip)!;
+    // Filter out old timestamps
+    const validTimestamps = timestamps.filter(ts => now - ts < WINDOW_MS);
+
+    if (validTimestamps.length >= MAX_REQUESTS) {
+        console.warn(`Rate limit exceeded for IP: ${ip}`);
+        return res.status(429).json({ error: 'Too many requests, please try again later.' });
+    }
+
+    validTimestamps.push(now);
+    rateLimit.set(ip, validTimestamps);
+    next();
+});
+
 // Proxy endpoint for Yahoo Finance Historical Data
 app.get('/api/yahoo-finance/:symbol', async (req, res) => {
     const { symbol } = req.params;
