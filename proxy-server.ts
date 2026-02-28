@@ -81,7 +81,12 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
     const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
     try {
-        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${period1}&period2=${period2}&interval=${interval}`;
+        const queryParams = new URLSearchParams({
+            period1: String(period1),
+            period2: String(period2),
+            interval: String(interval)
+        });
+        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?${queryParams.toString()}`;
         const response = await fetch(yahooUrl, { signal: controller.signal });
 
         if (!response.ok) {
