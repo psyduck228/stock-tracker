@@ -12,3 +12,8 @@
 **Vulnerability:** Unrestricted access to external API proxies allows abuse and potential IP bans.
 **Learning:** For simple single-instance development servers, an in-memory `Map<string, number[]>` is sufficient for rate limiting without external dependencies like Redis.
 **Prevention:** Implement middleware that tracks request timestamps per IP and rejects excessive requests (e.g., >20/min) with HTTP 429.
+
+## 2026-02-28 - HTTP Parameter Pollution in API Service
+**Vulnerability:** Construction of API URLs using string interpolation leaves them vulnerable to HTTP Parameter Pollution if inputs contain unescaped query string characters (`&`, `=`).
+**Learning:** This could allow a malicious user to overwrite or inject query parameters, potentially breaking the application or gaining unintended access.
+**Prevention:** Always use `URLSearchParams` to safely encode query parameters and `encodeURIComponent` for URL path components instead of raw string interpolation.

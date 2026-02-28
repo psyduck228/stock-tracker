@@ -34,14 +34,16 @@ export interface FinnhubCandleResponse {
 
 export const fetchQuote = async (symbol: string, token: string): Promise<FinnhubQuote> => {
     if (!token) throw new Error('API Key missing');
-    const response = await fetch(`${BASE_URL}/quote?symbol=${symbol}&token=${token}`);
+    const params = new URLSearchParams({ symbol, token });
+    const response = await fetch(`${BASE_URL}/quote?${params.toString()}`);
     if (!response.ok) throw new Error(`Failed to fetch quote for ${symbol}`);
     return response.json();
 };
 
 export const searchStocks = async (query: string, token: string): Promise<FinnhubSearchResponse> => {
     if (!token) throw new Error('API Key missing');
-    const response = await fetch(`${BASE_URL}/search?q=${query}&token=${token}`);
+    const params = new URLSearchParams({ q: query, token });
+    const response = await fetch(`${BASE_URL}/search?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to search stocks');
     return response.json();
 };
@@ -57,8 +59,14 @@ export const fetchCandles = async (
     // We map the YF response to match our internal FinnhubCandleResponse format so the rest of the app doesn't break.
     try {
         const yfResolution = resolution === '60' ? '1h' : (resolution === 'W' ? '1wk' : '1d');
+        const params = new URLSearchParams({
+            period1: from.toString(),
+            period2: to.toString(),
+            interval: yfResolution
+        });
+        const encodedSymbol = encodeURIComponent(symbol);
         const response = await fetch(
-            `http://localhost:3001/api/yahoo-finance/${symbol}?period1=${from}&period2=${to}&interval=${yfResolution}`
+            `http://localhost:3001/api/yahoo-finance/${encodedSymbol}?${params.toString()}`
         );
 
         if (!response.ok) throw new Error(`Yahoo Finance API returned ${response.status}`);
