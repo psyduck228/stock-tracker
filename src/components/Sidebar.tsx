@@ -272,7 +272,8 @@ const Sidebar: React.FC = () => {
                                     Don't have a key? Get one from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google Gemini</a>.
                                 </p>
                                 <input
-                                    type="text"
+                                    type="password"
+                                    autoComplete="off"
                                     placeholder="sk-proj-..."
                                     className="ai-api-input"
                                     id="aiApiKeyInput"

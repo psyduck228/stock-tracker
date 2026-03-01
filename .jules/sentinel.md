@@ -17,3 +17,8 @@
 **Vulnerability:** Construction of API URLs using string interpolation leaves them vulnerable to HTTP Parameter Pollution if inputs contain unescaped query string characters (`&`, `=`).
 **Learning:** This could allow a malicious user to overwrite or inject query parameters, potentially breaking the application or gaining unintended access.
 **Prevention:** Always use `URLSearchParams` to safely encode query parameters and `encodeURIComponent` for URL path components instead of raw string interpolation.
+
+## 2025-02-18 - API Key Shoulder Surfing Prevention
+**Vulnerability:** Input fields for sensitive information like API keys were set to `type="text"`, exposing them to shoulder surfing or screen sharing leaks. They were also prone to being saved in browser autocomplete caches.
+**Learning:** Any input field handling sensitive tokens, passwords, or keys must use the `password` type to mask the input by default.
+**Prevention:** Always use `<input type="password" autoComplete="off" />` when requesting sensitive credentials from the user on the client-side.
