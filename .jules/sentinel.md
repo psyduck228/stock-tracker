@@ -13,6 +13,11 @@
 **Learning:** For simple single-instance development servers, an in-memory `Map<string, number[]>` is sufficient for rate limiting without external dependencies like Redis.
 **Prevention:** Implement middleware that tracks request timestamps per IP and rejects excessive requests (e.g., >20/min) with HTTP 429.
 
+## 2025-03-02 - Rate Limiting Memory Leak (DoS)
+**Vulnerability:** In-memory rate limiting using a Map without an eviction strategy allows the Map to grow indefinitely as new IPs connect, eventually leading to a Denial of Service (DoS) via memory exhaustion.
+**Learning:** Even simple single-instance tools need periodic cleanup logic.
+**Prevention:** Always implement a TTL eviction or periodic background cleanup (e.g., via `setInterval`) for in-memory caches and rate limiter state.
+
 ## 2026-02-28 - HTTP Parameter Pollution in API Service
 **Vulnerability:** Construction of API URLs using string interpolation leaves them vulnerable to HTTP Parameter Pollution if inputs contain unescaped query string characters (`&`, `=`).
 **Learning:** This could allow a malicious user to overwrite or inject query parameters, potentially breaking the application or gaining unintended access.
