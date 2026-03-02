@@ -33,7 +33,8 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onSave }) => {
                 <form onSubmit={handleSubmit} className="api-modal-form">
                     <div className="input-group">
                         <input
-                            type="text"
+                            type="password"
+                            autoComplete="off"
                             placeholder="Paste your API key here..."
                             value={inputValue}
                             onChange={(e) => {
