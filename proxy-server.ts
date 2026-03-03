@@ -11,6 +11,10 @@ app.use(cors({
 
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Content-Security-Policy', "default-src 'self'");
     next();
 });
 
@@ -18,6 +22,19 @@ app.use((req, res, next) => {
 const rateLimit = new Map<string, number[]>();
 const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 20; // Limit each IP to 20 requests per minute
+
+// Cleanup stale IP entries to prevent memory leak DoS
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, timestamps] of rateLimit.entries()) {
+        const validTimestamps = timestamps.filter(ts => now - ts < WINDOW_MS);
+        if (validTimestamps.length === 0) {
+            rateLimit.delete(ip);
+        } else {
+            rateLimit.set(ip, validTimestamps);
+        }
+    }
+}, WINDOW_MS);
 
 // Rate limiting middleware
 app.use((req, res, next) => {
