@@ -2,6 +2,17 @@ import type { StockDataPoint } from '../types';
 
 const BASE_URL = 'https://finnhub.io/api/v1';
 
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 5000): Promise<Response> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        return response;
+    } finally {
+        clearTimeout(timeout);
+    }
+};
+
 export interface FinnhubQuote {
     c: number; // Current price
     d: number; // Change
@@ -35,7 +46,7 @@ export interface FinnhubCandleResponse {
 export const fetchQuote = async (symbol: string, token: string): Promise<FinnhubQuote> => {
     if (!token) throw new Error('API Key missing');
     const params = new URLSearchParams({ symbol, token });
-    const response = await fetch(`${BASE_URL}/quote?${params.toString()}`);
+    const response = await fetchWithTimeout(`${BASE_URL}/quote?${params.toString()}`);
     if (!response.ok) throw new Error(`Failed to fetch quote for ${symbol}`);
     return response.json();
 };
@@ -43,7 +54,7 @@ export const fetchQuote = async (symbol: string, token: string): Promise<Finnhub
 export const searchStocks = async (query: string, token: string): Promise<FinnhubSearchResponse> => {
     if (!token) throw new Error('API Key missing');
     const params = new URLSearchParams({ q: query, token });
-    const response = await fetch(`${BASE_URL}/search?${params.toString()}`);
+    const response = await fetchWithTimeout(`${BASE_URL}/search?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to search stocks');
     return response.json();
 };
