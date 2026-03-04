@@ -27,3 +27,7 @@
 **Vulnerability:** Input fields for sensitive information like API keys were set to `type="text"`, exposing them to shoulder surfing or screen sharing leaks. They were also prone to being saved in browser autocomplete caches.
 **Learning:** Any input field handling sensitive tokens, passwords, or keys must use the `password` type to mask the input by default.
 **Prevention:** Always use `<input type="password" autoComplete="off" />` when requesting sensitive credentials from the user on the client-side.
+## 2025-02-19 - Frontend API Fetch Timeout
+**Vulnerability:** External fetch calls without timeouts can hang indefinitely in the frontend, causing UI lockups and resource exhaustion.
+**Learning:** Even on the client side, external API calls need a timeout limit (using `AbortController`) to ensure the application remains responsive if the API fails to respond.
+**Prevention:** Implement a helper function like `fetchWithTimeout` to wrap `fetch` with a `setTimeout` and `AbortController` for all external API calls.
