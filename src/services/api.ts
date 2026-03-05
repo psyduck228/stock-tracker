@@ -148,7 +148,11 @@ export const generateAIAnalysis = async (
     model: string = 'gemini-2.5-flash'
 ): Promise<string> => {
     try {
-        const ai = new GoogleGenAI({ apiKey });
+        // Prevent external API call from hanging indefinitely and locking the UI
+        const ai = new GoogleGenAI({
+            apiKey,
+            httpOptions: { timeout: 10000 } // 10 second timeout
+        });
 
         const historyString = history.map(h => `${h.date}: $${h.price.toFixed(2)}`).join('\n');
 
