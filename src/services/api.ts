@@ -76,7 +76,7 @@ export const fetchCandles = async (
             interval: yfResolution
         });
         const encodedSymbol = encodeURIComponent(symbol);
-        const response = await fetch(
+        const response = await fetchWithTimeout(
             `http://localhost:3001/api/yahoo-finance/${encodedSymbol}?${params.toString()}`
         );
 
