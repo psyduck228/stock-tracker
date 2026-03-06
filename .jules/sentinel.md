@@ -31,3 +31,7 @@
 **Vulnerability:** External fetch calls without timeouts can hang indefinitely in the frontend, causing UI lockups and resource exhaustion.
 **Learning:** Even on the client side, external API calls need a timeout limit (using `AbortController`) to ensure the application remains responsive if the API fails to respond.
 **Prevention:** Implement a helper function like `fetchWithTimeout` to wrap `fetch` with a `setTimeout` and `AbortController` for all external API calls.
+## 2025-03-02 - External AI SDK Timeout Pattern
+**Vulnerability:** External calls to AI providers (like Google Gen AI) without explicit timeouts can hang indefinitely, causing UI lockups and resource exhaustion.
+**Learning:** SDKs often do not set strict default timeouts or they may be very long. The `@google/genai` SDK allows configuring `httpOptions: { timeout: ms }`.
+**Prevention:** Always configure an explicit timeout (e.g., 10s) when initializing external AI SDK clients to prevent indefinite hanging.
