@@ -106,6 +106,7 @@ const Sidebar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<FinnhubSearchResponse['result']>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [aiKeyInput, setAiKeyInput] = useState('');
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const sensors = useSensors(
@@ -277,13 +278,15 @@ const Sidebar: React.FC = () => {
                                     placeholder="sk-proj-..."
                                     className="ai-api-input"
                                     id="aiApiKeyInput"
+                                    value={aiKeyInput}
+                                    onChange={(e) => setAiKeyInput(e.target.value)}
                                 />
                                 <button
                                     className="ai-api-submit"
                                     onClick={() => {
-                                        const input = document.getElementById('aiApiKeyInput') as HTMLInputElement;
-                                        if (input && input.value.trim()) {
-                                            setAiApiKey(input.value.trim());
+                                        if (aiKeyInput.trim()) {
+                                            setAiApiKey(aiKeyInput.trim());
+                                            setAiKeyInput('');
                                         }
                                     }}
                                 >
