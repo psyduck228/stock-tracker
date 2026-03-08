@@ -189,6 +189,7 @@ const Sidebar: React.FC = () => {
                         className="search-input"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        maxLength={50} // Security enhancement: limit input to prevent DoS via massive payloads
                     />
                     {isSearching && <Loader2 size={16} className="search-spinner" />}
                 </div>
@@ -280,6 +281,7 @@ const Sidebar: React.FC = () => {
                                     id="aiApiKeyInput"
                                     value={aiKeyInput}
                                     onChange={(e) => setAiKeyInput(e.target.value)}
+                                    maxLength={100} // Security enhancement: prevent exceedingly long inputs
                                 />
                                 <button
                                     className="ai-api-submit"

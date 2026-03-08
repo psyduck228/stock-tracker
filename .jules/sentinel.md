@@ -35,3 +35,7 @@
 **Vulnerability:** External calls to AI providers (like Google Gen AI) without explicit timeouts can hang indefinitely, causing UI lockups and resource exhaustion.
 **Learning:** SDKs often do not set strict default timeouts or they may be very long. The `@google/genai` SDK allows configuring `httpOptions: { timeout: ms }`.
 **Prevention:** Always configure an explicit timeout (e.g., 10s) when initializing external AI SDK clients to prevent indefinite hanging.
+## 2025-03-02 - Missing Input Length Limits (DoS)
+**Vulnerability:** Frontend input fields (API keys, search queries) lacked length limits (`maxLength`), allowing users or automated scripts to paste massive strings, potentially causing client-side memory exhaustion or sending oversized payloads to the backend API.
+**Learning:** Even if the backend validates payload sizes, the frontend should act as the first line of defense to prevent oversized inputs from being processed or stored in browser memory (e.g., localStorage).
+**Prevention:** Always add sensible `maxLength` attributes to all HTML `<input>` elements (e.g. `maxLength={100}` for tokens, `maxLength={50}` for search fields).
