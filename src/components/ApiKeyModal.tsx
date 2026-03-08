@@ -43,6 +43,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onSave }) => {
                             }}
                             className={`api-input ${error ? 'error' : ''}`}
                             autoFocus
+                            maxLength={100} // Security enhancement: prevent excessively long inputs (DoS risk)
                         />
                         {error && <span className="api-error-text">{error}</span>}
                     </div>
