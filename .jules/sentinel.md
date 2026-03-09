@@ -39,3 +39,8 @@
 **Vulnerability:** Frontend input fields (API keys, search queries) lacked length limits (`maxLength`), allowing users or automated scripts to paste massive strings, potentially causing client-side memory exhaustion or sending oversized payloads to the backend API.
 **Learning:** Even if the backend validates payload sizes, the frontend should act as the first line of defense to prevent oversized inputs from being processed or stored in browser memory (e.g., localStorage).
 **Prevention:** Always add sensible `maxLength` attributes to all HTML `<input>` elements (e.g. `maxLength={100}` for tokens, `maxLength={50}` for search fields).
+
+## 2026-03-08 - Information Disclosure via Server Headers
+**Vulnerability:** Express applications by default send the `X-Powered-By: Express` header, which exposes the technology stack to potential attackers. Additionally, the lack of a strict `Referrer-Policy` can leak sensitive URLs to third-party sites via the Referer header.
+**Learning:** Default framework settings often favor developer convenience over security by disclosing internal framework details, assisting attackers in profiling the application for specific framework vulnerabilities.
+**Prevention:** Always use `app.disable('x-powered-by')` in Express apps and add `res.setHeader('Referrer-Policy', 'no-referrer')` to global middleware to minimize the attack surface by concealing infrastructure details and protecting user privacy.
