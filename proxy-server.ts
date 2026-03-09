@@ -128,6 +128,18 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
     }
 });
 
+// Catch-all route for undefined endpoints
+app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Global error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled Server Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
 app.listen(PORT, () => {
     console.log(`Proxy server running on http://localhost:${PORT}`);
 });
