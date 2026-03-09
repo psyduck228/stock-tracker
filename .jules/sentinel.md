@@ -44,3 +44,8 @@
 **Vulnerability:** Express applications by default send the `X-Powered-By: Express` header, which exposes the technology stack to potential attackers. Additionally, the lack of a strict `Referrer-Policy` can leak sensitive URLs to third-party sites via the Referer header.
 **Learning:** Default framework settings often favor developer convenience over security by disclosing internal framework details, assisting attackers in profiling the application for specific framework vulnerabilities.
 **Prevention:** Always use `app.disable('x-powered-by')` in Express apps and add `res.setHeader('Referrer-Policy', 'no-referrer')` to global middleware to minimize the attack surface by concealing infrastructure details and protecting user privacy.
+
+## 2026-03-09 - Information Disclosure via Express Default Error Handler
+**Vulnerability:** Express 5+ applications by default forward unhandled errors to a built-in error handler that returns HTML containing full stack traces, disclosing internal application structure and paths.
+**Learning:** The default behavior of Express when handling undefined routes or thrown errors is not secure for production or even strictly secured development environments, as it leaks information.
+**Prevention:** Always add a catch-all 404 handler for undefined routes and a global error-handling middleware (`app.use((err, req, res, next) => { ... })`) at the end of the middleware chain (before `app.listen`) to return generic, safe JSON responses and securely log the actual error on the server side.
