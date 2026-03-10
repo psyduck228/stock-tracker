@@ -190,6 +190,9 @@ const Sidebar: React.FC = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         maxLength={50} // Security enhancement: limit input to prevent DoS via massive payloads
+                        autoComplete="off" // Security enhancement: Prevent browser from caching potential sensitive data pasted by mistake
+                        spellCheck="false"
+                        autoCorrect="off"
                     />
                     {isSearching && <Loader2 size={16} className="search-spinner" />}
                 </div>
