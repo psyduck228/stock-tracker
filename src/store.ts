@@ -7,7 +7,11 @@ const loadWatchlistSymbols = (): string[] => {
     if (cached) {
         try {
             const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(item => typeof item === 'string')) {
+                return parsed;
+            } else if (Array.isArray(parsed) && parsed.length > 0) {
+                 console.warn('Invalid data types found in cached watchlist. Expected array of strings.');
+            }
         } catch (e) {
             console.error('Failed to parse cached watchlist symbols', e);
         }
