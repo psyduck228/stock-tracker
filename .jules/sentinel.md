@@ -58,3 +58,8 @@
 **Vulnerability:** Arrays returned from `localStorage` using `JSON.parse` were implicitly trusted. If malformed data (such as object configurations instead of strings) was somehow injected or corrupted into the cache, this type confusion could break React components or introduce Cross-Site Scripting (XSS) vectors when the object properties are mapped into the UI.
 **Learning:** Never trust the underlying types of elements from deserialized local storage simply because `Array.isArray()` evaluates to true.
 **Prevention:** Validate every element in arrays loaded from storage, like checking `parsed.every(item => typeof item === 'string')`, returning defaults if invalid types are encountered.
+
+## 2026-03-09 - Information Disclosure via Frontend Error Handling
+**Vulnerability:** The application was catching exceptions from the `@google/genai` AI analysis module and displaying `err.message` directly in the UI. If the API key is invalid or another network issue occurs, these raw error messages can sometimes expose sensitive context or internal parameters to the end user.
+**Learning:** Even on the client side, raw error messages from external libraries or SDKs should never be blindly trusted and rendered directly in the DOM, as they may contain sensitive information intended only for developer debugging.
+**Prevention:** Always log specific error details to the console using `console.error` for debugging, but set a generic, safe error message (e.g., "Analysis Error: Failed to generate insights.") to be displayed in the UI to prevent potential information leakage.

@@ -228,8 +228,8 @@ export const useStore = () => {
             setAiAnalysisText(result);
         } catch (err) {
             console.error('AI Analysis failed', err);
-            const message = err instanceof Error ? err.message : String(err);
-            setAiAnalysisText(`Analysis Error: ${message}`);
+            // Security enhancement: Do not expose raw error messages to the UI to prevent potential info leaks
+            setAiAnalysisText('Analysis Error: Failed to generate insights. Please try again later.');
         } finally {
             setIsAnalyzing(false);
         }
