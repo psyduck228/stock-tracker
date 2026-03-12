@@ -53,3 +53,8 @@
 **Vulnerability:** Input fields for search queries were left with default `autoComplete` settings. If a user inadvertently pastes sensitive data (like an API key) into the search bar, it gets saved in the browser's autocomplete history and could be disclosed to other users on the same machine or synced to an unsecured account.
 **Learning:** General-purpose text inputs, particularly those in an application handling API keys or financial data, should not cache user input unless explicitly desired, to prevent accidental leakage of mistakenly pasted secrets.
 **Prevention:** Always set `autoComplete="off"`, `spellCheck="false"`, and `autoCorrect="off"` on generic text `<input>` elements (e.g., search bars) to prevent the browser from permanently storing or sending potentially sensitive typos/pastes.
+
+## 2026-03-09 - Local Storage Type Confusion and XSS Injection
+**Vulnerability:** Arrays returned from `localStorage` using `JSON.parse` were implicitly trusted. If malformed data (such as object configurations instead of strings) was somehow injected or corrupted into the cache, this type confusion could break React components or introduce Cross-Site Scripting (XSS) vectors when the object properties are mapped into the UI.
+**Learning:** Never trust the underlying types of elements from deserialized local storage simply because `Array.isArray()` evaluates to true.
+**Prevention:** Validate every element in arrays loaded from storage, like checking `parsed.every(item => typeof item === 'string')`, returning defaults if invalid types are encountered.
