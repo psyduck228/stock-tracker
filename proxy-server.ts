@@ -84,8 +84,8 @@ app.get('/api/yahoo-finance/:symbol', async (req, res) => {
     }
 
     // Strict numeric validation for timestamps
-    if (!/^\d+$/.test(String(period1)) || !/^\d+$/.test(String(period2))) {
-        return res.status(400).json({ error: 'Invalid period format. Expected positive integers.' });
+    if (!/^\d{1,15}$/.test(String(period1)) || !/^\d{1,15}$/.test(String(period2))) {
+        return res.status(400).json({ error: 'Invalid period format. Expected positive integers up to 15 digits.' });
     }
 
     if (Number(period1) >= Number(period2)) {
