@@ -93,8 +93,8 @@ export const useStore = () => {
                 }
             } catch (err) {
                 if (mounted) {
-                    const message = err instanceof Error ? err.message : 'Unknown error';
-                    setError(message || 'Failed to load initial watchlist');
+                    console.error('Failed to load initial watchlist:', err);
+                    setError('Failed to load initial watchlist. Please check your connection and try again.');
                     setIsInitializing(false);
                 }
             }
@@ -133,8 +133,8 @@ export const useStore = () => {
             });
             setActiveSymbol(symbol);
         } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            setError(`Failed to add ${symbol}: ${message}`);
+            console.error(`Failed to add ${symbol}:`, err);
+            setError(`Failed to add ${symbol}. Please verify the symbol and try again.`);
         }
     }, [watchlist, apiKey]);
 
@@ -202,8 +202,7 @@ export const useStore = () => {
             }));
         } catch (err) {
             console.error('Fetch history failed', err);
-            const message = err instanceof Error ? err.message : String(err);
-            setError(`Failed to load history for ${activeSymbol}: ${message}`);
+            setError(`Failed to load history for ${activeSymbol}. Please try again later.`);
         } finally {
             setIsChartLoading(false);
         }
